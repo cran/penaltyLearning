@@ -1,0 +1,83 @@
+TODOs
+
+tests/support for flsa and HMM?
+
+- option to not stop in labelError if there is the same number of
+  changes in two models.
+
+IntervalRegressionCV uses future instead of foreach.
+
+2017.05.08
+
+future instead of do
+
+2017.05.05
+
+corrections encountered while preparing tutorial,
+
+- theme_no_space() evaluated at runtime rather than theme_no_space
+  which was evaluated at build time.
+
+- stop with an error if there are models that have the same number of
+  changes -- this prevents problems for changepoint models, but
+  prevents using the code with L1 regularized models (fused lasso).
+
+- stop with an error in targetIntervals if the errors column is not
+  numeric. And return an errors column (the minimum number of
+  incorrect labels).
+
+2017.04.11
+
+prepare for CRAN submission:
+- convert to src/*.cpp files and register routines.
+- NULL variables to avoid CRAN checks about global variables.
+- vignette.
+- many more user-friendly error messages.
+- coefficients of IntervalRegression models are
+  now returned on the original scale.
+
+2017.03.24
+
+IntervalRegression S3 class with plot, print, and predict methods.
+
+largestContinuousMinimum C implementation.
+
+more informative error messages when arguments to R functions are not
+as expected.
+
+check for bigger/smaller data sets in ROChange and labelError.
+
+check for errors in C code and return with non-zero status.
+
+2017.01.31
+
+labelError works when there are more models than labels, and gives an
+informative error when there are no corresponding models for a given
+label.
+
+2017.01.21
+
+tests for peak model and for IntervalRegression functions.
+
+2017.01.20
+
+IntervalRegression* functions.
+
+2017.01.17
+
+labelError, targetIntervals, ROChange.
+
+2017.01.13
+
+C solver for linear time modelSelection algorithm, interface via
+modelSelectionC function.
+
+modelSelectionR function with original quadratic time algorithm in R
+code.
+
+modelSelection which takes a data.frame as input instead of vectors,
+and uses modelSelectionC.
+
+2017.01.12
+
+First version.
