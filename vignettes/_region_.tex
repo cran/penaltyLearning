@@ -1,0 +1,12 @@
+\message{ !name(Definition.Rnw.tex)}
+\message{ !name(Definition.Rnw) !offset(169) }
+library(ggplot2)
+ggplot()+
+  theme_grey()+
+  facet_grid(. ~ pid.chr)+
+  geom_segment(aes(
+    min.log.lambda, n.segments,
+    xend=max.log.lambda, yend=n.segments),
+    data=some.selection)
+
+\message{ !name(Definition.Rnw.tex) !offset(-12) }

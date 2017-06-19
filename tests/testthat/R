@@ -1,2 +1,0 @@
-test-errors.R:27:    targetIntervalROC(ok.targets, pred.vec)
-test-errors.R:34:    targetIntervalROC(ok.targets, pred.vec)
