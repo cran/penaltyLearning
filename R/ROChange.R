@@ -11,28 +11,36 @@ ROChange <- structure(function # ROC curve for changepoints
 ### log(penalty) value for each segmentation problem.
   problem.vars=character()
 ### character: column names used to identify data set / segmentation
-### problem. 
+### problem.
 ){
   possible.fp <- possible.fn <- min.log.lambda <- fp <- fn <- thresh <-
     log.lambda <- pred.log.lambda <- errors <- FPR <- tp <- TPR <-
-      error.percent <- min.thresh <- max.thresh <- NULL
+      error.percent <- min.thresh <- max.thresh <- max.log.lambda <-
+        next.min <- problems <- n.inconsistent <- NULL
 ### The code above is to avoid CRAN NOTEs like
 ### ROChange: no visible binding for global variable
   if(!(
     is.character(problem.vars) &&
       0 < length(problem.vars) &&
-      !is.na(problem.vars)
+      all(!is.na(problem.vars)) &&
+      all(problem.vars %in% names(predictions)) &&
+      all(problem.vars %in% names(models))
     )){
     stop("problem.vars should be a character vector of column names (IDs for predictions and models)")
   }
   exp.cols <- c(
     "fp", "possible.fp", "fn", "possible.fn", "errors", "labels",
-    problem.vars, "min.log.lambda")
+    problem.vars, "min.log.lambda", "max.log.lambda")
   if(!(
     is.data.frame(models) &&
       all(exp.cols %in% names(models))
     )){
     stop("models should have columns ", paste(exp.cols, collapse=", "))
+  }
+  for(col.name in exp.cols){
+    if(any(is.na(models[[col.name]]))){
+      stop(col.name, " should not be NA")
+    }
   }
   if(!(
     is.data.frame(predictions) &&
@@ -42,14 +50,79 @@ ROChange <- structure(function # ROC curve for changepoints
     stop("predictions should be a data.frame with at least one row and a column named pred.log.lambda")
   }
   pred <- data.table(predictions)
-  err <- data.table(models)
-  total.dt <- err[pred, on=problem.vars, .SD[1,], by=problem.vars][, list(
+  bad.pred <- pred[, list(
+    problems=.N
+  ), by=problem.vars][1 < problems]
+  if(nrow(bad.pred)){
+    print(pred[bad.pred, on=problem.vars])
+    stop("more than one prediction per problem")
+  }
+  err <- data.table(models)[pred, on=problem.vars]
+  setkeyv(err, c(problem.vars, "min.log.lambda"))
+  err.missing <- err[is.na(labels)]
+  if(nrow(err.missing)){
+    print(err.missing)
+    stop("some predictions do not exist in models")
+  }
+  min.max.not.Inf <- err[, list(
+    min=min(min.log.lambda),
+    max=max(max.log.lambda)
+  ), by=problem.vars][-Inf < min | max < Inf]
+  if(nrow(min.max.not.Inf)){
+    print(min.max.not.Inf)
+    stop("for every problem, the smallest min.log.lambda should be -Inf, and the largest max.log.lambda should be Inf")
+  }
+  err[, next.min := c(min.log.lambda[-1], Inf), by=problem.vars]
+  inconsistent.counts <- err[, list(
+    n.inconsistent=sum(next.min != max.log.lambda)
+  ), by=problem.vars][0 < n.inconsistent]
+  if(nrow(inconsistent.counts)){
+    print(err[inconsistent.counts, on=problem.vars])
+    stop("max.log.lambda should be equal to the next min.log.lambda")
+  }
+  for(col.name in c("labels", "possible.fp", "possible.fn")){
+    possible.ranges <- err[, {
+      x <- .SD[[col.name]]
+      list(
+        min=min(x),
+        max=max(x)
+      )}, by=problem.vars]
+    possible.inconsistent <- possible.ranges[min != max]
+    if(nrow(possible.inconsistent)){
+      print(possible.inconsistent)
+      stop(
+        col.name,
+        " should be constant for each problem")
+    }
+  }
+  negative <- err[possible.fp<0 | possible.fn<0 | labels<0]
+  if(nrow(negative)){
+    print(negative)
+    stop("possible.fn/possible.fp/labels should be non-negative")
+  }
+  possible.name.vec <- c(
+    errors="labels",
+    fp="possible.fp",
+    fn="possible.fn")
+  for(err.name in names(possible.name.vec)){
+    poss.name <- possible.name.vec[[err.name]]
+    poss.num <- err[[poss.name]]
+    err.num <- err[[err.name]]
+    out.of.range <- err[poss.num < err.num | err.num < 0]
+    if(nrow(out.of.range)){
+      print(out.of.range)
+      stop(
+        err.name,
+        " should be in [0,",
+        poss.name,
+        "]")
+    }
+  }
+  first.dt <- err[max.log.lambda==Inf]
+  total.dt <- first.dt[, list(
     labels=sum(labels),
     possible.fp=sum(possible.fp),
     possible.fn=sum(possible.fn))]
-  if(is.na(total.dt$labels)){
-    stop("some predictions do not exist in models")
-  }
   if(total.dt$possible.fp==0){
     stop("no negative labels")
   }
@@ -72,7 +145,7 @@ ROChange <- structure(function # ROC curve for changepoints
     ##browser(expr=sample.id=="McGill0322")
     rbind(fp.dt, fn.dt)
   }, by=problem.vars]
-  pred.with.thresh <- thresh.dt[pred, on=problem.vars]
+  pred.with.thresh <- thresh.dt[pred, on=problem.vars, nomatch=0L]
   pred.with.thresh[, thresh := log.lambda - pred.log.lambda]
   uniq.thresh <- pred.with.thresh[, list(
     fp=sum(fp),
@@ -82,8 +155,8 @@ ROChange <- structure(function # ROC curve for changepoints
     total.dt,
     min.thresh=c(thresh, -Inf),
     max.thresh=c(Inf, thresh),
-    fp=cumsum(c(0, fp)),
-    fn=total.dt$possible.fn+cumsum(c(0, fn)))]
+    fp=cumsum(c(sum(first.dt$fp), fp)),
+    fn=sum(first.dt$fn)+cumsum(c(0, fn)))]
   interval.dt[, errors := fp+fn]
   interval.dt[, FPR := fp/possible.fp]
   interval.dt[, tp := possible.fn - fn]
@@ -102,7 +175,7 @@ ROChange <- structure(function # ROC curve for changepoints
     thresholds=rbind(
       data.table(
         threshold="predicted",
-        interval.dt[min.thresh <= 0 & 0 <= max.thresh, ]),
+        interval.dt[min.thresh < 0 & 0 <= max.thresh, ]),
       data.table(threshold="min.error", interval.dt[which.min(errors), ])),
     auc.polygon=roc.polygon,
     auc=roc.polygon[, geometry::polyarea(FPR, TPR)]
@@ -117,6 +190,8 @@ ROChange <- structure(function # ROC curve for changepoints
 }, ex=function(){
 
   library(penaltyLearning)
+  library(data.table)
+
   data(neuroblastomaProcessed, envir=environment())
   ## Get incorrect labels data for one profile.
   pid <- 11
@@ -133,7 +208,7 @@ ROChange <- structure(function # ROC curve for changepoints
   ggplot()+
     geom_path(aes(FPR, TPR), data=result$roc)+
     geom_point(aes(FPR, TPR, color=threshold), data=result$thresholds, shape=1)
-  
+
   ## Plot the number of incorrect labels as a function of threshold.
   ggplot()+
     geom_segment(aes(
