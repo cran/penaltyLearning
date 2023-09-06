@@ -5,10 +5,9 @@ library(data.table)
 
 ggcost <- function(){
   if(interactive() && require("ggplot2")){
-    prob.vec <- unique(models$problem)
-    gg.dt <- data.table(problem=prob.vec)[, {
+    pred.dt <- data.table(predictions)
+    gg.dt <- data.table(problem=pred.dt$problem)[, {
       data.table(log.pen=seq(-2, 2, by=0.5))[, {
-        pred.dt <- data.table(predictions)
         pred.dt$pred.log.lambda[problem] <- log.pen
         with(
           ROChange(models, pred.dt, "problem"),
@@ -53,6 +52,13 @@ test_that("noncvx 1fp[-1,0] 1fn[0,1]", {
   expect_equal(L$aum.grad$hi, c(-1,-1))
 })
 
+predictions <- data.table(problem=c(1,2), pred.log.lambda=c(0, Inf))
+test_that("1fp[-1,0] 1fn[0,1]", {
+  expect_error({
+    ROChange(models, predictions, "problem")
+  }, "all predictions must be finite")
+})
+
 models <- data.table(
   fp=c(1, 0, 0, 0),
   fn=c(0, 0, 0, 1),
@@ -83,6 +89,45 @@ test_that("1fp[0,0] 1fn[0,0]", {
   expect_equal(L$aum.grad$problem, c(1,2))
   expect_equal(L$aum.grad$lo, c(0,0))
   expect_equal(L$aum.grad$hi, c(0,0))
+})
+
+models <- data.table(
+  fp=c(1, 0, 0, 0, 0, 0),
+  fn=c(0, 0, 0, 1, 0, 0),
+  possible.fn=c(0,0,1,1,1,1),
+  possible.fp=c(1,1,0,0,0,1),
+  min.log.lambda=c(-Inf,0,-Inf,0,1, -Inf),
+  max.log.lambda=c(0,Inf,0,1,Inf, Inf),
+  labels=1,
+  problem=c(1,1,2,2,2,3))
+models[, errors := fp+fn]
+predictions <- data.table(problem=c(1,2,3), pred.log.lambda=0)
+ggcost()
+test_that("1fp[-1,0] 1fn[0,1], no change", {
+  L <- ROChange(models, predictions, "problem")
+  expect_equal(L$aum, 0)
+  print(L$aum.grad)
+  expect_equal(L$aum.grad$problem, c(1,2,3))
+  expect_equal(L$aum.grad$lo, c(-1,0,0))
+  expect_equal(L$aum.grad$hi, c(0,1,0))
+})
+
+predictions <- data.table(problem=c(1,2), pred.log.lambda=c(1, -1))
+ggcost()
+test_that("three problems but two predictions", {
+  L <- ROChange(models, predictions, "problem")
+  expect_equal(L$aum, 0)
+  print(L$aum.grad)
+  expect_equal(L$aum.grad$problem, c(1,2))
+  expect_equal(L$aum.grad$lo, c(0,0))
+  expect_equal(L$aum.grad$hi, c(0,0))
+})
+
+predictions <- data.table(problem=c(1,2,2), pred.log.lambda=c(1, -1,0))
+test_that("three models, three predictions with problem", {
+  expect_error({
+    ROChange(models, predictions, "problem")
+  }, "more than one prediction per problem")
 })
 
 models <- data.table(
@@ -214,3 +259,33 @@ test_that("auc=2 for one error curve with one loop", {
   expect_equal(L$auc, 2)
 })
 
+
+d <- function(min.log.lambda, fp, fn){
+  data.table(min.log.lambda, fp, fn)
+}
+profile <- function(..., possible.fp, possible.fn, errors, labels){
+  dt <- do.call(rbind, list(...))
+  if(missing(possible.fp))possible.fp <- max(dt$fp)
+  if(missing(possible.fn))possible.fn <- max(dt$fn)
+  errors <- dt[, fp+fn]
+  if(missing(labels))labels <- max(errors)
+  dt[, data.table(
+    min.log.lambda,
+    max.log.lambda=c(min.log.lambda[-1], Inf),
+    fp, fn, errors, possible.fp, possible.fn, labels)]
+}
+
+test_that("aum not -Inf", {
+  err <- profile(
+    d(-Inf, 0, 10),
+    d(2, 8/3, 8/3),
+    d(5, 10, 8/3),
+    d(7, 10, 25/3),
+    d(8, 5/3, 25/3),
+    d(9, 5/3, 8/3),
+    d(10, 10, 0))
+  pred.dt <- data.table(problem=1, pred.log.lambda=0)
+  p <- data.table(problem=1, err)
+  roc.list <- penaltyLearning::ROChange(p, pred.dt, problem.vars="problem")
+  expect_true(all(roc.list$roc$fn >= 0))
+})

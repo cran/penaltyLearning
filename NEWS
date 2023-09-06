@@ -1,210 +1,135 @@
-TODOs
+Changes in version 2023.8.31
 
-tests/support for flsa and HMM?
+- update un-exported fun arg docs to avoid CRAN NOTE.
 
-- option to not stop in labelError if there is the same number of
-  changes in two models.
+Changes in version 2021.4.21
 
-2020.5.13 PR#14
+- Stop with an error for non-finite predictions.
 
-Remove dependency on Segmentor3IsBack, which was removed from CRAN in
-May 2020.
+Changes in version 2019.12.3
 
-ROC curve reversed if necessary in AUC computation. i.e. ROChange no
-longer assumes that small thresholds mean lots of fp/tp.
+- test/fix modelSelection for non-monotonic sequences of loss values.
 
-no longer need geometry for AUC computation.
+Changes in version 2019.11.19
 
-ROChange returns aum (Area Under Min{fp,fn}) and aum.grad
-(directional derivatives) for predicted values.
+- labelError is OK with model columns that are missing.
 
-ROC curve thresholds sorted increasing rather than decreasing.
+Changes in version 2019.10.10
 
-2019.12.3
+- stop with an error for IntervalRegressionCV(., unlogged.outputs).
+- new args for IntervalRegressionCV including LAPPLY which defaults to future.apply::future_lapply but can be set to base::lapply for debugging.
+- new notConverging data set and test.
+- smaller crit before restarting with a larger Lipschitz in IntervalRegressionCV.
 
-test/fix modelSelection for non-monotonic sequences of loss values.
+Changes in version 2019.5.16
 
-2019.11.19
+- non-strict equality in while(crossing point >= previous breakpoint) to avoid zero-length intervals.
+- additional tests for modelSelectionFwd.
 
-labelError is OK with model columns that are missing.
+Changes in version 2019.05.15
 
-2019.10.10
+- Use modelSelectionFwd C algo for modelSelectionC R function.
+- Fix featureMatrix/labelError/ROChange argument checks, if(logical vector length bigger than 1) was used and is now being checked in R-3.6.0.
 
-stop with an error for IntervalRegressionCV(., unlogged.outputs).
+Changes in version 2019.05.03
 
-new args for IntervalRegressionCV including LAPPLY which defaults to
-future.apply::future_lapply but can be set to base::lapply for
-debugging.
+- modelSelectionFwd and modelSelectionQuadratic.
 
-new notConverging data set and test.
+Changes in version 2019.04.18
 
-smaller crit before restarting with a larger Lipschitz in
-IntervalRegressionCV.
+- IntervalRegressionCV: informative reg.type undefined error.
 
-2019.5.29 PR#13
+Changes in version 2019.02.28
 
-ROChange: only return one threshold=="prediction" row, even if the
-predicted threshold=0 happens to be exactly on the border between two
-models.
+- set last_lambda=0 when popping.
 
-2019.5.28 PR#12
+Changes in version 2019.02.27
 
-ROChange: informative error / test when there is more than one
-prediction per problem.
+- import rather than Depend data.table
 
-2019.5.16
+Changes in version 2018.10.23
 
-non-strict equality in while(crossing point >= previous breakpoint) to
-avoid zero-length intervals.
+- IntervalRegression* stops with an informative error if there are no upper/lower limits.
+- Remove Remotes/Travis deps.
+- ROChange now works when there are problems with no thresholds, e.g. the FPR/TPR does not change at all when varying the penalty from 
 
-additional tests for modelSelectionFwd.
+Changes in version 2018.09.24
 
-2019.05.15
+- labelError stops for unrecognized annotations.
 
-Use modelSelectionFwd C algo for modelSelectionC R function.
+Changes in version 2018.09.04
 
-Fix featureMatrix/labelError/ROChange argument checks, if(logical vector length
-bigger than 1) was used and is now being checked in R-3.6.0.
+- use future.apply::future_lapply.
 
-2019.05.03
+Changes in version 2017.12.08
 
-modelSelectionFwd and modelSelectionQuadratic.
+- remove vignette to pass CRAN check.
 
-2019.04.18
+Changes in version 2017.11.17
 
-IntervalRegressionCV: informative reg.type undefined error.
+- In vignette, remove cghseg since it has memory problems, use Segmentor instead, with trivial 1 segment model when Segmentor fails.
+- Remove cghseg from example(modelSelectionC).
+- Don't use fullpage in vignette because that causes a NOTE on CRAN mac.
 
-2019.02.28
+Changes in version 2017.07.12
 
-set last_lambda=0 when popping.
+- try to fix vignette by using cghseg:::segmeanCO instead of Segmentor.
 
-2019.02.27
+Changes in version 2017.07.11
 
-import rather than Depend data.table
+- there is some problem with Segmentor3IsBack on windows, which crashes our vignette re-building in CRAN checks on solaris... not sure why but try to fix via adding tryCatch in vignette.
+- Add ... passed from IntervalRegressionCV to IntervalRegressionRegularized.
 
-2018.10.23
+Changes in version 2017.06.14
 
-IntervalRegression* stops with an informative error if there are no
-upper/lower limits.
+- labelError bugfix and test case for no predicted changes.
+- Simplify examples -- avoid running Segmentor since this crashes on new versions of R on windows.
 
-Remove Remotes/Travis deps.
+Changes in version 2017.05.08
 
-ROChange now works when there are problems with no thresholds,
-e.g. the FPR/TPR does not change at all when varying the penalty from
-0 to Inf.
+- IntervalRegressionCV uses future instead of foreach.
 
-2018.09.24
+Changes in version 2017.05.05
 
-labelError stops for unrecognized annotations.
+- corrections encountered while preparing tutorial,
+- - theme_no_space() evaluated at runtime rather than theme_no_space   which was evaluated at build time.
+- - stop with an error if there are models that have the same number of   changes -- this prevents problems for changepoint models, but   prevents using the code with L1 regularized models (fused lasso).
+- - stop with an error in targetIntervals if the errors column is not   numeric. And return an errors column (the minimum number of   incorrect labels).
 
-2018.09.04
+Changes in version 2017.04.11
 
-use future.apply::future_lapply.
+- prepare for CRAN submission: - convert to src/*.cpp files and register routines. - NULL variables to avoid CRAN checks about global variables. - vignette. - many more user-friendly error messages. - coefficients of IntervalRegression models are   now returned on the original scale.
 
-2017.12.08
+Changes in version 2017.03.24
 
-remove vignette to pass CRAN check.
+- IntervalRegression S3 class with plot, print, and predict methods.
+- largestContinuousMinimum C implementation.
+- more informative error messages when arguments to R functions are not as expected.
+- check for bigger/smaller data sets in ROChange and labelError.
+- check for errors in C code and return with non-zero status.
 
-2017.11.17
+Changes in version 2017.01.31
 
-In vignette, remove cghseg since it has memory problems, use Segmentor
-instead, with trivial 1 segment model when Segmentor fails.
+- labelError works when there are more models than labels, and gives an informative error when there are no corresponding models for a given label.
 
-Remove cghseg from example(modelSelectionC).
+Changes in version 2017.01.21
 
-Don't use fullpage in vignette because that causes a NOTE on CRAN mac.
+- tests for peak model and for IntervalRegression functions.
 
-2017.07.12
+Changes in version 2017.01.20
 
-try to fix vignette by using cghseg:::segmeanCO instead of Segmentor.
+- IntervalRegression* functions.
 
-2017.07.11
+Changes in version 2017.01.17
 
-there is some problem with Segmentor3IsBack on windows, which crashes
-our vignette re-building in CRAN checks on solaris... not sure why but
-try to fix via adding tryCatch in vignette.
+- labelError, targetIntervals, ROChange.
 
-Add ... passed from IntervalRegressionCV to
-IntervalRegressionRegularized.
+Changes in version 2017.01.13
 
-2017.06.14
+- C solver for linear time modelSelection algorithm, interface via modelSelectionC function.
+- modelSelectionR function with original quadratic time algorithm in R code.
+- modelSelection which takes a data.frame as input instead of vectors, and uses modelSelectionC.
 
-labelError bugfix and test case for no predicted changes.
+Changes in version 2017.01.12
 
-Simplify examples -- avoid running Segmentor since this crashes on new
-versions of R on windows.
-
-2017.05.08
-
-IntervalRegressionCV uses future instead of foreach.
-
-2017.05.05
-
-corrections encountered while preparing tutorial,
-
-- theme_no_space() evaluated at runtime rather than theme_no_space
-  which was evaluated at build time.
-
-- stop with an error if there are models that have the same number of
-  changes -- this prevents problems for changepoint models, but
-  prevents using the code with L1 regularized models (fused lasso).
-
-- stop with an error in targetIntervals if the errors column is not
-  numeric. And return an errors column (the minimum number of
-  incorrect labels).
-
-2017.04.11
-
-prepare for CRAN submission:
-- convert to src/*.cpp files and register routines.
-- NULL variables to avoid CRAN checks about global variables.
-- vignette.
-- many more user-friendly error messages.
-- coefficients of IntervalRegression models are
-  now returned on the original scale.
-
-2017.03.24
-
-IntervalRegression S3 class with plot, print, and predict methods.
-
-largestContinuousMinimum C implementation.
-
-more informative error messages when arguments to R functions are not
-as expected.
-
-check for bigger/smaller data sets in ROChange and labelError.
-
-check for errors in C code and return with non-zero status.
-
-2017.01.31
-
-labelError works when there are more models than labels, and gives an
-informative error when there are no corresponding models for a given
-label.
-
-2017.01.21
-
-tests for peak model and for IntervalRegression functions.
-
-2017.01.20
-
-IntervalRegression* functions.
-
-2017.01.17
-
-labelError, targetIntervals, ROChange.
-
-2017.01.13
-
-C solver for linear time modelSelection algorithm, interface via
-modelSelectionC function.
-
-modelSelectionR function with original quadratic time algorithm in R
-code.
-
-modelSelection which takes a data.frame as input instead of vectors,
-and uses modelSelectionC.
-
-2017.01.12
-
-First version.
+- First version.
