@@ -1,11 +1,11 @@
-0dea25479b2fc6e6a79b99cfbfffa8bb *DESCRIPTION
+a9b7bd0a26b993541c9a286737d2ce13 *DESCRIPTION
 9839b761cdb8e380bf74a110d0d90643 *NAMESPACE
-97a85808a78bcc31d28a5e772c88a623 *NEWS
+c0710271ab82b712defe3990a9e3f241 *NEWS
 d38cfee089aac3ea8b774d0c33f682b7 *R/IntervalRegression.R
 d06bca74cc94cb1cbf1509ef80f33b0e *R/ROChange.R
 635839746a3debe4ad694d06856b3c79 *R/featureVector.R
 044243ffc794d0e1b6b3405c16c0ee02 *R/geoms.R
-41cd43df9ccb470727a39ccbd36699c7 *R/labelError.R
+56815f7fc99db95bf3cf6499f311818f *R/labelError.R
 e761a861ed951970f9d6c83bda4d46a4 *R/modelSelection.R
 411cccf277be167afa7fc08e5cb93def *R/targetIntervals.R
 faedbadd71c58234210a6f18dc7592ea *data/datalist
@@ -63,7 +63,7 @@ d18023e1aca9adc7cf51ae114994d411 *tests/testthat/test-ROChange.R
 af1fa899791e3bd3948667755da604da *tests/testthat/test-demo8.R
 03ca44fbef006b422347a5be870eb025 *tests/testthat/test-errors.R
 612bf5eb8a5ad3954b1bf73377d7bd4b *tests/testthat/test-features.R
-4eb263892c4a8069bcdd4e70dc96acd7 *tests/testthat/test-labelError.R
+28b0bfc24d91bd4f91580a7759e501be *tests/testthat/test-labelError.R
 70578732a430c9fc40b885e648b34c4b *tests/testthat/test-largestContinuousMinimum.R
 02b86d29ad337838458dcd32616fd98b *tests/testthat/test-long.R
 f4b4f4631a8a42aaed8150efa1d39989 *tests/testthat/test-modelSelection.R
